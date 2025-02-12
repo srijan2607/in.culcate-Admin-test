@@ -3,7 +3,6 @@
 const prisma = require("../../db/connect");
 const { StatusCodes } = require("http-status-codes");
 const { BadRequestError, UnauthenticatedError } = require("../../errors");
-const { createJWT } = require("../../services/jwt_create");
 const { hashPassword } = require("../../services/password_auth");
 
 // Get all admins

@@ -4,63 +4,83 @@ const prisma = require("../../db/connect");
 const { StatusCodes } = require("http-status-codes");
 const { BadRequestError } = require("../../errors");
 
-// Get all the categories
-
+// get all categories
 const get_all_categories = async (req, res) => {
-  const page = Number(req.params.page) || 1;
-  let limit = Number(req.query.limit) || 10;
-  if (page <= 0) {
-    limit = 1;
-  }
-  if (limit <= 0 || limit > 100) {
-    limit = 10;
-  }
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
   const categories = await prisma.category.findMany({
-    skip: (page - 1) * limit, // Calculate the number of items to skip skip = (2 - 1) * 10 = 1 * 10 = 10
-    take: limit, // Number of items to return
-
+    skip: (page - 1) * limit,
+    take: limit,
     orderBy: { createdAt: "desc" },
-  });
-  res.json(categories);
-};
-
-// Create a new category
-
-// Create a new category
-const create_category = async (req, res) => {
-  const { name, description } = req.body;
-  if (!name) {
-    throw new BadRequestError("Please provide name and description");
-  }
-  const category = await prisma.category.create({
-    data: {
-      name,
-      description,
+    include: {
+      Knowledge_capsule: {
+        select: {
+          id: true,
+          Short_title: true,
+          Long_title: true,
+        },
+      },
     },
   });
-  res.status(StatusCodes.CREATED).json(category);
+  const total_categories = await prisma.category.count();
+  const totalPages = Math.ceil(total_categories / limit);
+  res.status(StatusCodes.OK).json({
+    categories: categories,
+    totalPages: totalPages,
+    total_categories: total_categories,
+    limit: limit,
+    currentPage: page,
+  });
 };
 
-// Update a category
+// create a category
+
+const create_category = async (req, res) => {
+  const { name } = req.body;
+  if (!name) {
+    throw new BadRequestError("Please provide a name for the category");
+  }
+
+  // Check if category already exists
+  const existingCategory = await prisma.category.findUnique({
+    where: {
+      name: name,
+    },
+  });
+
+  if (existingCategory) {
+    throw new BadRequestError("Category with this name already exists");
+  }
+
+  const newCategory = await prisma.category.create({
+    data: {
+      name,
+    },
+  });
+  const ans = { ...newCategory };
+  res.status(StatusCodes.CREATED).json({ newCategory });
+};
+
+// update a category
 const update_category = async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
-  const category = await prisma.category.update({
+  if (!name) {
+    throw new BadRequestError("Please provide a name for the category");
+  }
+  const updatedCategory = await prisma.category.update({
     where: { id: Number(id) },
-    data: {
-      name,
-    },
+    data: { name },
   });
-  res.json(category);
+  res.status(StatusCodes.OK).json({ updatedCategory });
 };
 
-// Delete a category
 const delete_category = async (req, res) => {
   const { id } = req.params;
-  await prisma.category.delete({
+  const deletedCategory = await prisma.category.delete({
     where: { id: Number(id) },
   });
-  res.status(StatusCodes.NO_CONTENT).send();
+  res.status(StatusCodes.OK).json({ deletedCategory });
 };
 
 module.exports = {

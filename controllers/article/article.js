@@ -69,19 +69,25 @@ const create_knowledge_capsule = async (req, res) => {
       Long_title,
       Long_content,
       Long_image,
-      tags,          // Array of tag names
-      categoryId,    // Must be an existing category ID
-      authorId      // Must be the current user's ID
+      tags, // Array of tag names
+      categoryId, // Must be an existing category ID
+      authorId, // Must be the current user's ID
     } = req.body;
 
     // Validate required fields
-    if (!Short_title || !Short_content || !Long_title || !Long_content || !categoryId) {
+    if (
+      !Short_title ||
+      !Short_content ||
+      !Long_title ||
+      !Long_content ||
+      !categoryId
+    ) {
       throw new BadRequestError("Please provide all required fields");
     }
 
     // Verify category exists
     const categoryExists = await prisma.category.findUnique({
-      where: { id: categoryId }
+      where: { id: categoryId },
     });
     if (!categoryExists) {
       throw new BadRequestError("Invalid category ID");
@@ -94,7 +100,7 @@ const create_knowledge_capsule = async (req, res) => {
         const tag = await prisma.tag.upsert({
           where: { name: tagName },
           update: {}, // If exists, don't update anything
-          create: { name: tagName }
+          create: { name: tagName },
         });
         tagObjects.push({ id: tag.id });
       }
@@ -110,14 +116,14 @@ const create_knowledge_capsule = async (req, res) => {
         Long_content,
         Long_image,
         category: {
-          connect: { id: categoryId }
+          connect: { id: categoryId },
         },
         Author: {
-          connect: { id: req.user.userId } // Connect to current user
+          connect: { id: req.user.userId }, // Connect to current user
         },
         tags: {
-          connect: tagObjects // Connect to existing/new tags
-        }
+          connect: tagObjects, // Connect to existing/new tags
+        },
       },
       include: {
         tags: true,
@@ -126,16 +132,18 @@ const create_knowledge_capsule = async (req, res) => {
           select: {
             id: true,
             name: true,
-            email: true
-          }
-        }
-      }
+            email: true,
+          },
+        },
+      },
     });
 
     return res.status(StatusCodes.CREATED).json({ knowledge_capsule });
   } catch (error) {
     if (error instanceof BadRequestError) throw error;
-    throw new BadRequestError("Failed to create knowledge capsule: " + error.message);
+    throw new BadRequestError(
+      "Failed to create knowledge capsule: " + error.message
+    );
   }
 };
 

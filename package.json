@@ -38,6 +38,7 @@
   "description": "",
   "devDependencies": {
     "install": "^0.13.0",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.9",
     "npm": "^11.1.0",
     "prisma": "^6.3.1"

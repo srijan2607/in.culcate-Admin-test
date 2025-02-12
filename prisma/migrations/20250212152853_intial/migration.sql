@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "User" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "password" TEXT NOT NULL,
@@ -16,15 +16,15 @@ CREATE TABLE "User" (
 
 -- CreateTable
 CREATE TABLE "Knowledge_capsule" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "Short_title" TEXT NOT NULL,
     "Short_content" TEXT NOT NULL,
     "Short_image" TEXT NOT NULL,
     "Long_title" TEXT NOT NULL,
     "Long_content" TEXT NOT NULL,
     "Long_image" TEXT NOT NULL,
-    "authorId" BIGINT NOT NULL,
-    "categoryId" BIGINT NOT NULL,
+    "authorId" INTEGER NOT NULL,
+    "categoryId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Knowledge_capsule_pkey" PRIMARY KEY ("id")
@@ -32,7 +32,7 @@ CREATE TABLE "Knowledge_capsule" (
 
 -- CreateTable
 CREATE TABLE "Tag" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
 
     CONSTRAINT "Tag_pkey" PRIMARY KEY ("id")
@@ -40,16 +40,17 @@ CREATE TABLE "Tag" (
 
 -- CreateTable
 CREATE TABLE "Category" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "_Knowledge_capsuleToTag" (
-    "A" BIGINT NOT NULL,
-    "B" BIGINT NOT NULL,
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL,
 
     CONSTRAINT "_Knowledge_capsuleToTag_AB_pkey" PRIMARY KEY ("A","B")
 );

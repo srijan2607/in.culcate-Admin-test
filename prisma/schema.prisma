@@ -15,7 +15,7 @@ datasource db {
 }
 
 model User {
-  id                 BigInt              @id @default(autoincrement())
+  id                 Int              @id @default(autoincrement())
   email              String              @unique
   name               String
   password           String
@@ -31,7 +31,7 @@ model User {
 }
 
 model Knowledge_capsule {
-  id            BigInt   @id @default(autoincrement())
+  id            Int   @id @default(autoincrement())
   // Short_capsule
   Short_title   String
   Short_content String
@@ -43,21 +43,21 @@ model Knowledge_capsule {
   // Relationships
   tags          Tag[]
   Author        User     @relation(fields: [authorId], references: [id])
-  authorId      BigInt
+  authorId      Int
   category      Category @relation(fields: [categoryId], references: [id])
-  categoryId    BigInt
+  categoryId    Int
   createdAt     DateTime @default(now())
 }
 
 model Tag {
-  id                BigInt              @id @default(autoincrement())
+  id                Int              @id @default(autoincrement())
   name              String              @unique
   // Relationships
   Knowledge_capsule Knowledge_capsule[]
 }
 
 model Category {
-  id                BigInt              @id @default(autoincrement())
+  id                Int              @id @default(autoincrement())
   name              String              @unique
   createdAt         DateTime            @default(now())
   // Relationships
