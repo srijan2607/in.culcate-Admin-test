@@ -1,0 +1,129 @@
+{
+  "info": {
+    "name": "Knowledge Capsule API Tests",
+    "description": "Test suite for Knowledge Capsule API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Knowledge Capsules",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/knowledge-capsule?page=1&limit=10"
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Knowledge Capsule by ID",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/knowledge-capsule/{{capsuleId}}"
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Create Knowledge Capsule",
+      "request": {
+        "method": "POST",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/knowledge-capsule"
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "Short_title": "Test Title",
+            "Short_content": "Test Content",
+            "Short_image": "https://example.com/image.jpg",
+            "Long_title": "Test Long Title",
+            "Long_content": "Test Long Content",
+            "Long_image": "https://example.com/long-image.jpg",
+            "tags": ["test", "api"],
+            "category": "Test Category",
+            "Author": "Test Author"
+          }
+        }
+      }
+    },
+    {
+      "name": "Update Knowledge Capsule",
+      "request": {
+        "method": "PATCH",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/knowledge-capsule/{{capsuleId}}"
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": {
+            "Short_title": "Updated Title",
+            "Short_content": "Updated Content",
+            "tags": ["updated", "test"],
+            "category": "Updated Category"
+          }
+        }
+      }
+    },
+    {
+      "name": "Delete Knowledge Capsule",
+      "request": {
+        "method": "DELETE",
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/knowledge-capsule/{{capsuleId}}"
+        },
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{authToken}}"
+          }
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "authToken",
+      "value": "your-auth-token-here"
+    },
+    {
+      "key": "capsuleId",
+      "value": "example-capsule-id"
+    }
+  ]
+}

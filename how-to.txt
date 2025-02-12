@@ -1,0 +1,34 @@
+1. Prisma
+2. Middlewares
+3. controllers
+5. DB
+4. errors
+5. routers
+6. Services
+7. .env
+8. .gitignore
+9. app.js
+10. package.json
+11. Readme.md
+________________________________________________________________________________________________________________________________
+
+Rules :-
+
+1. use camel case only for namespace
+2. small word for folder names and file names
+3. name of the file on the top
+
+
+________________________________________________________________________________________________________________________________
+
+controllers :-
+
+1. article
+2. auth
+3. Home
+4. tags
+5. categories
+6. user-panel
+7. admin-panel
+
+

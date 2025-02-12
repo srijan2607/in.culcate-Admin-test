@@ -1,0 +1,8 @@
+{
+  "cSpell.words": ["autoincrement"],
+  "github.copilot.enable": {
+    "plaintext": true,
+    "markdown": true,
+    "scminput": true
+  }
+}

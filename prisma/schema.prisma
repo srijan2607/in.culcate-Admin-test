@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 BigInt              @id @default(autoincrement())
+  email              String              @unique
+  name               String
+  password           String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  // Role
+  isAdmin            Boolean             @default(false)
+  isContent_creator  Boolean             @default(false)
+  isValidator        Boolean             @default(false)
+  isConsumer         Boolean             @default(true)
+  // Relationships
+  knowledge_capsules Knowledge_capsule[]
+}
+
+model Knowledge_capsule {
+  id            BigInt   @id @default(autoincrement())
+  // Short_capsule
+  Short_title   String
+  Short_content String
+  Short_image   String // Cloudflare image
+  // Long_capsule
+  Long_title    String
+  Long_content  String
+  Long_image    String // Cloudflare image
+  // Relationships
+  tags          Tag[]
+  Author        User     @relation(fields: [authorId], references: [id])
+  authorId      BigInt
+  category      Category @relation(fields: [categoryId], references: [id])
+  categoryId    BigInt
+  createdAt     DateTime @default(now())
+}
+
+model Tag {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique
+  // Relationships
+  Knowledge_capsule Knowledge_capsule[]
+}
+
+model Category {
+  id                BigInt              @id @default(autoincrement())
+  name              String              @unique
+  createdAt         DateTime            @default(now())
+  // Relationships
+  Knowledge_capsule Knowledge_capsule[]
+}

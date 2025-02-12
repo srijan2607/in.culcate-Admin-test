@@ -1,0 +1,10 @@
+{
+    "Short_title": "Test Article",
+    "Short_content": "Short version...",
+    "Short_image": "https://example.com/image.jpg",
+    "Long_title": "Complete Test Article",
+    "Long_content": "Full version...",
+    "Long_image": "https://example.com/full-image.jpg",
+    "tags": ["technology", "programming", "web"], 
+    "categoryId": 1 
+}
