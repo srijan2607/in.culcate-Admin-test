@@ -11,8 +11,8 @@ const {
 } = require("../controllers/users/admin");
 router.get("/admin", get_all_admins);
 router.get("/admin/:id", get_admin_by_id);
-router.patch("/admin_update", update_admin);
-router.delete("/admin_delete", delete_admin);
+router.patch("/admin_update/:id", update_admin);
+router.delete("/admin_delete/:id", delete_admin);
 router.post("/admin_create", create_admin);
 
 module.exports = router;

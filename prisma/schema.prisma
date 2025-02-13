@@ -27,7 +27,7 @@ model User {
   isValidator        Boolean             @default(false)
   isConsumer         Boolean             @default(true)
   // Relationships
-  knowledge_capsules Knowledge_capsule[]
+  knowledge_capsules Knowledge_capsule[] // One-to-many
 }
 
 model Knowledge_capsule {
@@ -42,9 +42,9 @@ model Knowledge_capsule {
   Long_image    String // Cloudflare image
   // Relationships
   tags          Tag[]
-  Author        User     @relation(fields: [authorId], references: [id])
+  Author        User     @relation(fields: [authorId], references: [id], onDelete: Restrict)
   authorId      Int
-  category      Category @relation(fields: [categoryId], references: [id])
+  category      Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   categoryId    Int
   createdAt     DateTime @default(now())
 }
@@ -53,7 +53,7 @@ model Tag {
   id                Int              @id @default(autoincrement())
   name              String              @unique
   // Relationships
-  Knowledge_capsule Knowledge_capsule[]
+  Knowledge_capsule Knowledge_capsule[] // Many-to-many
 }
 
 model Category {
@@ -61,5 +61,5 @@ model Category {
   name              String              @unique
   createdAt         DateTime            @default(now())
   // Relationships
-  Knowledge_capsule Knowledge_capsule[]
+  Knowledge_capsule Knowledge_capsule[] // One-to-many
 }

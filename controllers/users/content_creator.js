@@ -20,7 +20,7 @@ const get_all_content_creators = async (req, res) => {
     skip: (page - 1) * limit, // Calculate the number of items to skip
     take: limit, // Number of items to return
 
-    where: { isContentCreator: true },
+    where: { isContent_creator: true },
   });
   res.status(StatusCodes.OK).json(contentCreators);
 };
@@ -29,8 +29,7 @@ const get_all_content_creators = async (req, res) => {
 const get_content_creator_by_id = async (req, res) => {
   const { id } = req.params;
   const contentCreator = await prisma.user.findUnique({
-    where: { id },
-    include: { isContentCreator: true },
+    where: { id: Number(id), isContent_creator: true },
   });
   if (!contentCreator) {
     return res
@@ -42,74 +41,62 @@ const get_content_creator_by_id = async (req, res) => {
 
 // Create a new content creator
 const create_content_creator = async (req, res) => {
-  if (req.user && req.user.isAdmin) {
-    const { name, email, password } = req.body;
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-    if (user) {
-      throw new BadRequestError("User already exists");
-    }
-    const hashedPassword = await hashPassword(password);
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        isContentCreator: true,
-      },
-    });
-    res
-      .status(StatusCodes.CREATED)
-      .json({ message: "Content Creator registered successfully", token });
-  } else {
-    throw new UnauthenticatedError(
-      "Dude Hold your horses, you are not an admin"
-    );
+  const { name, email, password } = req.body;
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (user) {
+    throw new BadRequestError("User already exists");
   }
+  const hashedPassword = await hashPassword(password);
+  const newUser = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      isContent_creator: true,
+    },
+  });
+  res
+    .status(StatusCodes.CREATED)
+    .json({ message: "Content Creator registered successfully", newUser });
 };
 
 // Update content creator by ID
 const update_content_creator = async (req, res) => {
-  if (req.user && req.user.isAdmin) {
-    const { id } = req.params;
-    const { email, password, name } = req.body;
-    const updatedContentCreator = await prisma.user.update({
-      where: { id },
-      isContentCreator: true,
-      data: { email, password, name },
-    });
-    if (!updatedContentCreator) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "Content Creator not found" });
-    }
-    res.status(StatusCodes.ACCEPTED).json(updatedContentCreator);
-  } else {
-    throw new UnauthenticatedError(
-      "Dude Hold your horses, you are not an admin"
-    );
+  const { id } = req.params;
+  const { email, password, name } = req.body;
+  let updated_data = { email, name };
+
+  if (password) {
+    const hashedPassword = await hashPassword(password);
+    updated_data.password = hashedPassword;
   }
+
+  const updated_content_creator = await prisma.user.update({
+    where: { id: Number(id), isContent_creator: true },
+    data: updated_data,
+  });
+
+  if (!updated_content_creator) {
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "Admin not found" });
+  }
+
+  res.status(StatusCodes.OK).json(updated_content_creator);
 };
 
 // Delete content creator by ID
 const delete_content_creator = async (req, res) => {
-  if (req.user && req.user.isAdmin) {
-    const { id } = req.params;
-    const deletedContentCreator = await prisma.user.delete({
-      where: { id: Number(id), isContent_creator: true },
-    });
-    if (!deletedContentCreator) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "Content Creator not found" });
-    }
-    res.status(StatusCodes.ACCEPTED).json(deletedContentCreator);
-  } else {
-    throw new UnauthenticatedError(
-      "Dude Hold your horses, you are not an admin"
-    );
+  const { id } = req.params;
+  const deleted_Content_Creator = await prisma.user.delete({
+    where: { id: Number(id), isContent_creator: true },
+  });
+  if (!deleted_Content_Creator) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ error: "Content Creator not found" });
   }
+  res.status(StatusCodes.ACCEPTED).json(deleted_Content_Creator);
 };
 
 module.exports = {

@@ -13,16 +13,13 @@ const loginUser = async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        password: true,
-        isAdmin: true,
-        isContentCreator: true,
-        isValidator: true,
-        isConsumer: true,
+      where: {
+        email,
+        OR: [
+          { isAdmin: true },
+          { isValidator: true },
+          { isContent_creator: true },
+        ],
       },
     });
 

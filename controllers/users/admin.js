@@ -38,73 +38,60 @@ const get_admin_by_id = async (req, res) => {
 
 // Create a new admin
 const create_admin = async (req, res) => {
-  if (req.user && req.user.isAdmin) {
-    const { name, email, password } = req.body;
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-    if (user) {
-      throw new BadRequestError("User already exists");
-    }
-    const hashedPassword = await hashPassword(password);
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        isAdmin: true,
-      },
-    });
-    res
-      .status(StatusCodes.CREATED)
-      .json({ message: "Admin registered successfully", token });
-  } else {
-    throw new UnauthenticatedError(
-      "Dude Hold your horses, you are not an admin"
-    );
+  const { name, email, password } = req.body;
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (user) {
+    throw new BadRequestError("User already exists");
   }
+  const hashedPassword = await hashPassword(password);
+  const newAdmin = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+      isAdmin: true,
+    },
+  });
+  res
+    .status(StatusCodes.CREATED)
+    .json({ message: "Admin registered successfully", newAdmin });
 };
 
 // Update admin by ID
 const update_admin = async (req, res) => {
-  if (req.user && req.user.isAdmin) {
-    const { id } = req.params;
-    const { email, password, name } = req.body;
-    const updatedAdmin = await prisma.user.update({
-      where: { id },
-      data: { email, password, name },
-    });
-    if (!updatedAdmin) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "Admin not found" });
-    }
-    res.status(StatusCodes.OK).json(updatedAdmin);
-  } else {
-    throw new UnauthenticatedError(
-      "Dude Hold your horses, you are not an admin"
-    );
+  const { id } = req.params;
+  const { email, password, name } = req.body;
+  let update_data = { email, name };
+
+  if (password) {
+    const hashedPassword = await hashPassword(password);
+    update_data.password = hashedPassword;
   }
+
+  const updated_Admin = await prisma.user.update({
+    where: { id: Number(id), isAdmin: true},
+    data: update_data,
+  });
+
+  if (!updated_Admin) {
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "Admin not found" });
+  }
+
+  res.status(StatusCodes.OK).json(updated_Admin);
 };
 
 // Delete admin by ID
 const delete_admin = async (req, res) => {
-  if (req.user && req.user.isAdmin) {
-    const { id } = req.params;
-    const deletedAdmin = await prisma.user.delete({
-      where: { id: Number(id), isAdmin: true },
-    });
-    if (!deletedAdmin) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "Admin not found" });
-    }
-    res.status(StatusCodes.OK).json(deletedAdmin);
-  } else {
-    throw new UnauthenticatedError(
-      "Dude Hold your horses, you are not an admin"
-    );
+  const { id } = req.params;
+  const deletedAdmin = await prisma.user.delete({
+    where: { id: Number(id), isAdmin: true },
+  });
+  if (!deletedAdmin) {
+    return res.status(StatusCodes.NOT_FOUND).json({ error: "Admin not found" });
   }
+  res.status(StatusCodes.OK).json(deletedAdmin);
 };
 
 module.exports = {

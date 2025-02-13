@@ -14,7 +14,7 @@ ________________________________________________________________________________
 
 Rules :-
 
-1. use camel case only for namespace
+1. use snake case only for namespace
 2. small word for folder names and file names
 3. name of the file on the top
 

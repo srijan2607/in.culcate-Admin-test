@@ -24,18 +24,10 @@ const register_admin = async (req, res) => {
 
   const token = createJWT(newUser.id, newUser.name);
 
-  // Convert BigInt to string in the response
-  const sanitizedUser = {
-    ...newUser,
-    id: newUser.id.toString(),
-    createdAt: newUser.createdAt?.toISOString(),
-    updatedAt: newUser.updatedAt?.toISOString(),
-  };
-
   res.status(StatusCodes.CREATED).json({
     message: "Admin registered successfully",
     token,
-    newUser: sanitizedUser,
+    newUser,
   });
 };
 

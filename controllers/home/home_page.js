@@ -6,52 +6,39 @@
 
 const { StatusCodes } = require("http-status-codes");
 const prisma = require("../../db/connect");
+const { BadRequestError } = require("../../errors");
 
-// getting Count of no of Admin
-const get_admin_count = async (req, res) => {
-  const adminCount = await prisma.user.count({ where: { isAdmin: true } });
-  res.status(StatusCodes.OK).json({ adminCount });
-};
+const get_counts = async (req, res) => {
+  try {
+    const admin_count = await prisma.user.count({ where: { isAdmin: true } });
+    const consumer_count = await prisma.user.count({
+      where: {
+        isConsumer: true,
+        isAdmin: false,
+        isContent_creator: false,
+        isValidator: false,
+      },
+    });
+    const content_creator_count = await prisma.user.count({
+      where: { isContent_creator: true },
+    });
+    const category_count = await prisma.category.count();
+    const tag_count = await prisma.tag.count();
+    const knowledge_capsule_count = await prisma.knowledge_capsule.count();
 
-// getting Count of no of consumers
-const get_consumer_count = async (req, res) => {
-  const consumerCount = await prisma.user.count({
-    where: { isConsumer: true },
-  });
-  res.status(StatusCodes.OK).json({ consumerCount });
-};
-
-// getting Count of no of Content creators
-const get_content_creator_count = async (req, res) => {
-  const contentCreatorCount = await prisma.user.count({
-    where: { isContentCreator: true },
-  });
-  res.status(StatusCodes.OK).json({ contentCreatorCount });
-};
-
-// getting Count of no of Categories
-const get_category_count = async (req, res) => {
-  const categoryCount = await prisma.category.count();
-  res.status(StatusCodes.OK).json({ categoryCount });
-};
-
-// getting Count of no of Tags
-const get_tag_count = async (req, res) => {
-  const tagCount = await prisma.tag.count();
-  res.status(StatusCodes.OK).json({ tagCount });
-};
-
-// getting Count of no of Knowledge Capsules
-const get_knowledge_capsule_count = async (req, res) => {
-  const knowledgeCapsuleCount = await prisma.knowledge_capsule.count();
-  res.status(StatusCodes.OK).json({ knowledgeCapsuleCount });
+    res.status(StatusCodes.OK).json({
+      admin_count: admin_count,
+      consumer_count: consumer_count,
+      content_creator_count: content_creator_count,
+      category_count: category_count,
+      tag_count: tag_count,
+      knowledge_capsule_count: knowledge_capsule_count,
+    });
+  } catch (error) {
+    throw new BadRequestError(error);
+  }
 };
 
 module.exports = {
-  get_admin_count,
-  get_consumer_count,
-  get_content_creator_count,
-  get_category_count,
-  get_tag_count,
-  get_knowledge_capsule_count,
+  get_counts,
 };
