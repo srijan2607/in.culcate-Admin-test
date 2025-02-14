@@ -13,8 +13,8 @@ const {
 } = require("../controllers/users/admin");
 router.get("/admin", get_all_admins);
 router.get("/admin/:id", get_admin_by_id);
-router.patch("/admin_update/:id", isAdmin ,update_admin);
+router.patch("/admin_update/:id", isAdmin, update_admin);
 router.delete("/admin_delete/:id", isAdmin, delete_admin);
-router.post("/admin_create", isAdmin ,create_admin);
+router.post("/admin_create", isAdmin, create_admin);
 
 module.exports = router;
