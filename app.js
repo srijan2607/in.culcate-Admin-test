@@ -20,6 +20,8 @@ const login = require("./routers/login");
 const tags = require("./routers/tags");
 const validator = require("./routers/validators");
 const Authentication = require("./middleware/authentication");
+const isAdmin = require("./middleware/isAdmin");
+const isAdminOrContentCreator = require("./middleware/isAdmin_or_CC");
 
 // Security Packages
 const helmet = require("helmet");
