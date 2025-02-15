@@ -6,6 +6,7 @@ require("express-async-errors");
 const express = require("express");
 const app = express();
 const { PrismaClient } = require("@prisma/client");
+const cloudflareService = require("./services/cloudflare");
 const prisma = new PrismaClient();
 app.use(express.json());
 
@@ -51,6 +52,19 @@ app.use("/api/admin/v1/content_creator", Authentication, content_creator);
 app.use("/api/admin/v1/validator", Authentication, validator);
 
 const port = process.env.PORT || 6000;
+
+cloudflareService
+  .testConnection()
+  .then((isConnected) => {
+    if (isConnected) {
+      console.log("✅ Successfully connected to Cloudflare Images");
+    } else {
+      console.error("❌ Failed to connect to Cloudflare Images");
+    }
+  })
+  .catch((error) => {
+    console.error("❌ Error testing Cloudflare connection:", error.message);
+  });
 
 const start = async () => {
   try {

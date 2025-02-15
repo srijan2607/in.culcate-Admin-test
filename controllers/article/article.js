@@ -10,6 +10,7 @@ const {
   NotFoundError,
   CustomAPIError,
 } = require("../../errors");
+const cloudflareService = require("../../services/cloudflare");
 
 // Get all knowledge capsules
 
@@ -47,51 +48,80 @@ const get_knowledge_capsule_by_id = async (req, res) => {
 };
 
 // Create a new knowledge capsule
-
 const create_knowledge_capsule = async (req, res) => {
-  const {
-    Short_title,
-    Short_content,
-    Short_image,
-    Long_title,
-    Long_content,
-    Long_image,
-    authorId,
-    categoryId,
-    tags, // Expecting an array of tag names
-  } = req.body;
-
-  // Validate required fields
-  if (
-    !Short_title ||
-    !Short_content ||
-    !Long_title ||
-    !Long_content ||
-    !authorId ||
-    !categoryId
-  ) {
-    throw new BadRequestError("Please provide all required fields");
-  }
-
   try {
-    // Create or connect tags
-    const tagConnections =
-      tags?.map((tagName) => ({
-        where: { name: tagName },
-        create: { name: tagName },
-      })) || [];
+    const {
+      Short_title,
+      Short_content,
+      Long_title,
+      Long_content,
+      authorId,
+      categoryId,
+      tags,
+    } = req.body;
+
+    // Parse tags if it's a string
+    let parsedTags = [];
+    try {
+      parsedTags = tags
+        ? typeof tags === "string"
+          ? JSON.parse(tags)
+          : tags
+        : [];
+      if (!Array.isArray(parsedTags)) {
+        throw new Error("Tags must be an array");
+      }
+    } catch (error) {
+      throw new BadRequestError("Invalid tags format. Must be a JSON array");
+    }
+
+    // Validate required fields
+    if (
+      !Short_title ||
+      !Short_content ||
+      !Long_title ||
+      !Long_content ||
+      !authorId ||
+      !categoryId
+    ) {
+      throw new BadRequestError("Please provide all required fields");
+    }
+
+    // Upload images to Cloudflare if they exist
+    let Short_image_url = null;
+    let Long_image_url = null;
+
+    if (req.files?.Short_image?.[0]) {
+      Short_image_url = await cloudflareService.uploadImage(
+        req.files.Short_image[0].buffer,
+        `short_${Date.now()}_${req.files.Short_image[0].originalname}`
+      );
+    }
+
+    if (req.files?.Long_image?.[0]) {
+      Long_image_url = await cloudflareService.uploadImage(
+        req.files.Long_image[0].buffer,
+        `long_${Date.now()}_${req.files.Long_image[0].originalname}`
+      );
+    }
+
+    // Create tag connections using parsed tags
+    const tagConnections = parsedTags.map((tagName) => ({
+      where: { name: tagName },
+      create: { name: tagName },
+    }));
 
     // Create knowledge capsule
     const newKnowledgeCapsule = await prisma.knowledge_capsule.create({
       data: {
         Short_title,
         Short_content,
-        Short_image,
+        Short_image: Short_image_url,
         Long_title,
         Long_content,
-        Long_image,
-        Author: { connect: { id: authorId } }, // Ensuring the author exists
-        category: { connect: { id: categoryId } }, // Ensuring the category exists
+        Long_image: Long_image_url,
+        Author: { connect: { id: Number(authorId) } },
+        category: { connect: { id: Number(categoryId) } },
         tags: { connectOrCreate: tagConnections },
       },
       include: {
@@ -106,28 +136,25 @@ const create_knowledge_capsule = async (req, res) => {
       newKnowledgeCapsule,
     });
   } catch (error) {
+    console.error("Error:", error);
     if (error.code === "P2002") {
       throw new BadRequestError("Duplicate entry detected");
     }
-    console.error("Database Error:", error);
     throw new CustomAPIError("Failed to create knowledge capsule");
   }
 };
 
 // update knowledge capsule
-
 const update_knowledge_capsule = async (req, res) => {
   const { id } = req.params;
   const {
     Short_title,
     Short_content,
-    Short_image,
     Long_title,
     Long_content,
-    Long_image,
     authorId,
     categoryId,
-    tags, // Expecting an array of tag names
+    tags,
   } = req.body;
 
   // Validate required fields
@@ -173,15 +200,35 @@ const update_knowledge_capsule = async (req, res) => {
   }
 
   try {
+    // Handle image updates
+    let Short_image_url = existingKnowledgeCapsule.Short_image;
+    let Long_image_url = existingKnowledgeCapsule.Long_image;
+
+    // Update Short_image if new file is provided
+    if (req.files?.Short_image?.[0]) {
+      Short_image_url = await cloudflareService.uploadImage(
+        req.files.Short_image[0].buffer,
+        `short_${Date.now()}_${req.files.Short_image[0].originalname}`
+      );
+    }
+
+    // Update Long_image if new file is provided
+    if (req.files?.Long_image?.[0]) {
+      Long_image_url = await cloudflareService.uploadImage(
+        req.files.Long_image[0].buffer,
+        `long_${Date.now()}_${req.files.Long_image[0].originalname}`
+      );
+    }
+
     const updatedKnowledgeCapsule = await prisma.knowledge_capsule.update({
       where: { id: knowledgeCapsuleId },
       data: {
         Short_title,
         Short_content,
-        Short_image,
+        Short_image: Short_image_url,
         Long_title,
         Long_content,
-        Long_image,
+        Long_image: Long_image_url,
         authorId,
         categoryId,
         // Handle tags (if provided)
@@ -192,7 +239,7 @@ const update_knowledge_capsule = async (req, res) => {
                 create: { name: tagName },
               })),
             }
-          : undefined, // Avoid unnecessary update if tags are not provided
+          : undefined,
       },
       include: {
         Author: {
@@ -220,6 +267,7 @@ const update_knowledge_capsule = async (req, res) => {
     throw new CustomAPIError("Failed to update knowledge capsule");
   }
 };
+
 // Delete knowledge capsule
 
 const delete_knowledge_capsule = async (req, res) => {
@@ -227,15 +275,31 @@ const delete_knowledge_capsule = async (req, res) => {
   const existingKnowledgeCapsule = await prisma.knowledge_capsule.findUnique({
     where: { id: Number(id) },
   });
+
   if (!existingKnowledgeCapsule) {
     throw new NotFoundError("Knowledge capsule not found");
   }
-  await prisma.knowledge_capsule.delete({
-    where: { id: Number(id) },
-  });
-  res.status(StatusCodes.OK).json({ message: "Knowledge capsule deleted" });
-};
 
+  try {
+    // Delete images from Cloudflare if they exist
+    if (existingKnowledgeCapsule.Short_image) {
+      await cloudflareService.deleteImage(existingKnowledgeCapsule.Short_image);
+    }
+    if (existingKnowledgeCapsule.Long_image) {
+      await cloudflareService.deleteImage(existingKnowledgeCapsule.Long_image);
+    }
+
+    // Delete the knowledge capsule
+    await prisma.knowledge_capsule.delete({
+      where: { id: Number(id) },
+    });
+
+    res.status(StatusCodes.OK).json({ message: "Knowledge capsule deleted" });
+  } catch (error) {
+    console.error("Error deleting knowledge capsule:", error);
+    throw new CustomAPIError("Failed to delete knowledge capsule");
+  }
+};
 module.exports = {
   get_all_knowledge_capsule,
   get_knowledge_capsule_by_id,
